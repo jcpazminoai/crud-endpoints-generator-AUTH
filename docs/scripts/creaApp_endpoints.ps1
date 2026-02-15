@@ -4,24 +4,33 @@ $repoRoot = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 Set-Location $repoRoot
 
 $cmds = @(
-  '@agent #nodejs-base-boilerplate: generar el código base del servidor Express',
-  'node docs/scripts/generate-full-structure-all.js docs/scripts/BD/script_creacionBd.sql',
-  'node docs/scripts/generate-postman-collection.js docs/scripts/BD/script_creacionBd.sql'
+  @{ cmd = 'node'; args = @('docs/scripts/generate-base-boilerplate.js') },
+  @{ cmd = 'node'; args = @('docs/scripts/generate-full-structure-all.js', 'docs/scripts/BD/script_creacionBd.sql') },
+  @{ cmd = 'node'; args = @('docs/scripts/generate-postman-collection.js', 'docs/scripts/BD/script_creacionBd.sql') }
 )
 
 foreach ($cmd in $cmds) {
-  if ($cmd -like '@agent*') {
+  if ($cmd -is [string] -and $cmd -like '@agent*') {
     Write-Host "AVISO: Este comando debe ejecutarse en el chat del agente:" -ForegroundColor Yellow
     Write-Host $cmd -ForegroundColor Yellow
     continue
   }
 
-  Write-Host "Ejecutando: $cmd" -ForegroundColor Cyan
-  $output = & powershell -NoProfile -Command $cmd 2>&1
+  if ($cmd -is [hashtable]) {
+    $pretty = "$($cmd.cmd) " + ($cmd.args -join ' ')
+    Write-Host "Ejecutando: $pretty" -ForegroundColor Cyan
+    & $cmd.cmd @($cmd.args)
+  } else {
+    Write-Host "Ejecutando: $cmd" -ForegroundColor Cyan
+    & $cmd
+  }
   $exitCode = $LASTEXITCODE
-  if ($output) { $output | Write-Host }
   if ($exitCode -ne 0) {
-    Write-Host "Error al ejecutar: $cmd" -ForegroundColor Red
+    if ($cmd -is [hashtable]) {
+      Write-Host "Error al ejecutar: $pretty" -ForegroundColor Red
+    } else {
+      Write-Host "Error al ejecutar: $cmd" -ForegroundColor Red
+    }
     exit $exitCode
   }
 }

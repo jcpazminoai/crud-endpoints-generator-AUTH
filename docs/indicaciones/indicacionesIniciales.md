@@ -8,13 +8,10 @@ Sigue estos dos comandos principales en la ventana de chat de tu agente (VS Code
 3. validar que D:...\docs\scripts\BD\script_creacionBd.sql, contenga el script de la base de datos
 
 ## Tareas a ejecutar
-1. Ejecutar el comando de **Boilerplate**.
-@agent #nodejs-base-boilerplate: generar el código base del servidor Express
-
-2. Ejecutar el comando para crear todoslos endpoints.
+1. Ejecutar, desde la terminal, el comando:
 .\docs\scripts\creaApp_endpoints.ps1
 
-3. Revisa el archivo README.md de la aplicación generada y realiza la Configuración
+3. Revisa el archivo README.md de la aplicación generada y realiza: Como instalarla
 
 ## Pruebas en Postman
 

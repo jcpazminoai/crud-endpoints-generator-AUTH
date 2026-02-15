@@ -55,6 +55,19 @@ function parseCreateTableBlocks(sql) {
   return blocks;
 }
 
+function parseDbName(sql) {
+  const createDbRegex = /CREATE\s+DATABASE(?:\s+IF\s+NOT\s+EXISTS)?\s+`?([a-zA-Z0-9_]+)`?/i;
+  const useDbRegex = /USE\s+`?([a-zA-Z0-9_]+)`?/i;
+
+  const createMatch = createDbRegex.exec(sql);
+  if (createMatch) return createMatch[1];
+
+  const useMatch = useDbRegex.exec(sql);
+  if (useMatch) return useMatch[1];
+
+  return null;
+}
+
 function parseColumns(blockBody) {
   const lines = blockBody
     .split(/\r?\n/)
@@ -113,6 +126,22 @@ function writeFile(filePath, content) {
   fs.writeFileSync(filePath, content, 'utf8');
 }
 
+function updateEnvFile(dbName) {
+  const envPath = path.join(repoRoot, '.env');
+  const templatePath = path.join(
+    repoRoot,
+    '.github',
+    'skills',
+    'nodejs-base-boilerplate',
+    'templates',
+    '.env.example.tmpl'
+  );
+  if (!fs.existsSync(templatePath)) return;
+  const content = readFileSafe(templatePath);
+  const updated = content.replace(/DB_NAME=.*/g, `DB_NAME=${dbName}`);
+  writeFile(envPath, updated);
+}
+
 function updateRoutesIndex(routesIndexPath, table) {
   const requireLine = `const ${table}Routes = require('./${table}');`;
   const useLine = `router.use('/${table}', ${table}Routes);`;
@@ -169,7 +198,7 @@ function writeAuthFiles() {
   }
 }
 
-function renderReadme(tableNames) {
+function renderReadme(tableNames, dbName) {
   const lines = [];
 
   lines.push('# Backend API (Node.js + Express)');
@@ -184,8 +213,7 @@ function renderReadme(tableNames) {
   lines.push('');
   lines.push('## Como instalarla');
   lines.push('1. Ubicate en la raiz del backend.');
-  lines.push('2. Copia `.env.example` a `.env` y completa credenciales.');
-  lines.push('3. Instala dependencias:');
+  lines.push('2. Instala dependencias:');
   lines.push('   ```');
   lines.push('   npm install');
   lines.push('   ```');
@@ -194,14 +222,6 @@ function renderReadme(tableNames) {
   lines.push('```');
   lines.push('npm run dev');
   lines.push('```');
-  lines.push('');
-  lines.push('## Variables de entorno necesarias');
-  lines.push('- `PORT`');
-  lines.push('- `DB_HOST`');
-  lines.push('- `DB_PORT`');
-  lines.push('- `DB_USER`');
-  lines.push('- `DB_PASSWORD`');
-  lines.push('- `DB_NAME`');
   lines.push('');
   lines.push('## Estructura del proyecto');
   lines.push('- `server.js`');
@@ -264,9 +284,9 @@ function renderReadme(tableNames) {
   return lines.join('\n');
 }
 
-function writeReadme(tableNames) {
+function writeReadme(tableNames, dbName) {
   const readmePath = path.join(repoRoot, 'README.md');
-  const content = renderReadme(tableNames);
+  const content = renderReadme(tableNames, dbName);
   fs.writeFileSync(readmePath, content, 'utf8');
 }
 
@@ -592,7 +612,30 @@ function generateForTable(table) {
   }
 }
 
-function main() {
+function promptDbName(defaultValue) {
+  return new Promise((resolve) => {
+    if (!process.stdin.isTTY) {
+      resolve(defaultValue);
+      return;
+    }
+
+    const readline = require('readline');
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    console.log('No se detecto nombre de base de datos en el SQL.');
+    rl.question(`Digita el nombre de la base de datos [${defaultValue}]: `, (answer) => {
+      const name = (answer || '').trim();
+      rl.close();
+      process.stdout.write('\n');
+      resolve(name || defaultValue);
+    });
+  });
+}
+
+async function main() {
   if (!fs.existsSync(sqlPath)) {
     console.error(`SQL file not found: ${sqlPath}`);
     process.exit(1);
@@ -606,11 +649,22 @@ function main() {
   ensureDir(path.join(repoRoot, 'test'));
 
   const sql = readFileSafe(sqlPath);
+  if (!sql || sql.trim().length === 0) {
+    console.error('SQL file is empty or has no valid content.');
+    process.exit(1);
+  }
+
+  const detectedDbName = parseDbName(sql);
+  if (detectedDbName) {
+    console.log(`DB_NAME detectado desde SQL: ${detectedDbName}`);
+  }
+  const dbName = detectedDbName || await promptDbName('nombre_baseDatos');
+
   const blocks = parseCreateTableBlocks(sql);
   const tableNames = blocks.map(block => block.name);
 
   if (tableNames.length === 0) {
-    console.error('No CREATE TABLE statements found.');
+    console.error('No CREATE TABLE statements found. Verifica que el SQL tenga definiciones validas.');
     process.exit(1);
   }
 
@@ -619,11 +673,15 @@ function main() {
     columns: parseColumns(block.body),
   }));
 
+  updateEnvFile(dbName);
   tableNames.forEach(generateForTable);
   writeAuthFiles();
-  writeReadme(tableNames);
+  writeReadme(tableNames, dbName);
   writeOpenApi(tables);
   console.log(`Generated structure for tables: ${tableNames.join(', ')}`);
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
