@@ -2,6 +2,10 @@
 
 Repositorio para personas que necesitan generar endpoints básicos a partir de un script de creación de base de datos (MySQL).
 
+## Codex Skill
+
+Este repositorio es un **skill de Codex/OpenCode**, pensado para usarse desde un agente en VS Code u OpenCode CLI.
+
 ## Qué hace
 - Genera los programas necesarios para tener endpoints básicos (con autorización mediante login) por cada tabla de la base de datos.
 - Provee una colección de Postman para probar los endpoints generados.
