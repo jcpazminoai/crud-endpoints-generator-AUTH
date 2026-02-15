@@ -23,3 +23,15 @@ Este repositorio es un **skill de Codex/OpenCode**, pensado para usarse desde un
 ## Resultado
 - Backend con endpoints básicos por tabla.
 - Archivo para importar en Postman y probar los endpoints.
+
+## Feedback
+Si encuentras un bug o quieres proponer una mejora, abre un Issue y usa la plantilla correspondiente.
+Plantillas disponibles: `feedback.yml`, `bug_report.yml`, `feature_request.yml`.
+Etiquetas sugeridas: `bug`, `enhancement`, `question`, `good-first-issue`.
+
+Proceso en GitHub:
+1. Ve a la pestaña Issues del repositorio.
+2. Haz clic en New issue.
+3. Elige la plantilla (Feedback, Bug report o Feature request) y pulsa Get started.
+4. Completa el formulario y crea el issue.
+Nota: GitHub puede mostrar el formulario en un modal o en una página, pero el contenido es el mismo.
