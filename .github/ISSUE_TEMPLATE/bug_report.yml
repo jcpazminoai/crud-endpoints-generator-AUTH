@@ -1,0 +1,42 @@
+name: Bug report
+description: Reporta un problema para que podamos corregirlo
+title: "Bug: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Descripcion del problema
+      description: Que paso exactamente.
+    validations:
+      required: true
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Pasos para reproducir
+      description: Lista de pasos para reproducir el error.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Comportamiento esperado
+      description: Que esperabas que ocurriera.
+    validations:
+      required: false
+  - type: textarea
+    id: entorno
+    attributes:
+      label: Entorno
+      description: Sistema operativo, version de Node.js y MySQL.
+      placeholder: |
+        OS:
+        Node.js:
+        MySQL:
+    validations:
+      required: false

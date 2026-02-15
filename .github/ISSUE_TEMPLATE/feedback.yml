@@ -1,0 +1,34 @@
+name: Feedback
+description: Comparte tu experiencia usando el repo
+title: "Feedback: "
+labels:
+  - question
+body:
+  - type: textarea
+    id: intento
+    attributes:
+      label: Que intentaste hacer
+      description: Describe el objetivo y los pasos que seguiste.
+    validations:
+      required: true
+  - type: textarea
+    id: funciono
+    attributes:
+      label: Que funciono bien
+      description: Que parte del flujo te resulto clara o util.
+    validations:
+      required: true
+  - type: textarea
+    id: fallo
+    attributes:
+      label: Que fallo o fue confuso
+      description: Errores, mensajes o pasos que no quedaron claros.
+    validations:
+      required: false
+  - type: textarea
+    id: mejoras
+    attributes:
+      label: Sugerencias de mejora
+      description: Ideas para hacerlo mas facil o completo.
+    validations:
+      required: false
