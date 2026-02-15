@@ -1,0 +1,45 @@
+﻿class {{Entity}}Service {
+  constructor({{entity}}Repository) {
+    this.{{entity}}Repository = {{entity}}Repository;
+  }
+
+  async getAll() {
+    return this.{{entity}}Repository.find();
+  }
+
+  async getById(id) {
+    const item = await this.{{entity}}Repository.findById(id);
+    if (!item) {
+      const error = new Error('{{Entity}} not found');
+      error.status = 404;
+      throw error;
+    }
+    return item;
+  }
+
+  async create(payload) {
+    return this.{{entity}}Repository.create(payload);
+  }
+
+  async update(id, payload) {
+    const item = await this.{{entity}}Repository.update(id, payload);
+    if (!item) {
+      const error = new Error('{{Entity}} not found');
+      error.status = 404;
+      throw error;
+    }
+    return item;
+  }
+
+  async remove(id) {
+    const removed = await this.{{entity}}Repository.delete(id);
+    if (!removed) {
+      const error = new Error('{{Entity}} not found');
+      error.status = 404;
+      throw error;
+    }
+    return { deleted: true };
+  }
+}
+
+module.exports = {{Entity}}Service;

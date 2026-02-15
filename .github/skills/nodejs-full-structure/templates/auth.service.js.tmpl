@@ -1,0 +1,43 @@
+﻿const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const pool = require('../db/pool');
+
+const DEFAULT_EXPIRES_IN = '1h';
+
+class AuthService {
+  async login(email, password) {
+    const [rows] = await pool.query(
+      'SELECT id, full_name, email, password_hash FROM users WHERE email = ? LIMIT 1',
+      [email]
+    );
+    const user = rows[0];
+    if (!user || !user.password_hash) {
+      const err = new Error('Unauthorized');
+      err.status = 401;
+      throw err;
+    }
+
+    const matches = await bcrypt.compare(password, user.password_hash);
+    if (!matches) {
+      const err = new Error('Unauthorized');
+      err.status = 401;
+      throw err;
+    }
+
+    const payload = { id: user.id, email: user.email };
+    const secret = process.env.JWT_SECRET || 'change-me';
+    const expiresIn = process.env.JWT_EXPIRES_IN || DEFAULT_EXPIRES_IN;
+    const token = jwt.sign(payload, secret, { expiresIn });
+
+    return {
+      token,
+      user: {
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+      },
+    };
+  }
+}
+
+module.exports = AuthService;

@@ -1,0 +1,31 @@
+﻿const pool = require('../db/pool');
+
+class {{Entity}}Repository {
+  async find() {
+    const [rows] = await pool.query('SELECT * FROM {{table}} ORDER BY id');
+    return rows;
+  }
+
+  async findById(id) {
+    const [rows] = await pool.query('SELECT * FROM {{table}} WHERE id = ? LIMIT 1', [id]);
+    return rows[0] || null;
+  }
+
+  async create(data) {
+    // TODO: adjust columns and values
+    const [result] = await pool.query('INSERT INTO {{table}} SET ?', [data]);
+    return this.findById(result.insertId);
+  }
+
+  async update(id, data) {
+    const [result] = await pool.query('UPDATE {{table}} SET ? WHERE id = ?', [data, id]);
+    return result.affectedRows > 0 ? this.findById(id) : null;
+  }
+
+  async delete(id) {
+    const [result] = await pool.query('DELETE FROM {{table}} WHERE id = ?', [id]);
+    return result.affectedRows > 0;
+  }
+}
+
+module.exports = {{Entity}}Repository;
